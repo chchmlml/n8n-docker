@@ -9,13 +9,13 @@ x-shared: &shared
   restart: always
   environment:
     - DB_TYPE=postgresdb
-    - DB_POSTGRESDB_HOST=postgres
+    - DB_POSTGRESDB_HOST=n8n-postgres
     - DB_POSTGRESDB_PORT=5432
     - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
     - DB_POSTGRESDB_USER=${POSTGRES_NON_ROOT_USER}
     - DB_POSTGRESDB_PASSWORD=${POSTGRES_NON_ROOT_PASSWORD}
     - EXECUTIONS_MODE=queue
-    - QUEUE_BULL_REDIS_HOST=redis
+    - QUEUE_BULL_REDIS_HOST=n8n-redis
     - QUEUE_HEALTH_CHECK_ACTIVE=true
     - N8N_BASIC_AUTH_ACTIVE=false
     - N8N_SECURE_COOKIE=false
@@ -23,14 +23,14 @@ x-shared: &shared
     - VUE_APP_URL_BASE_API=https://${N8N_HOST}
     - WEBHOOK_TUNNEL_URL=https://${N8N_HOST}
   links:
-    - postgres
-    - redis
+    - n8n-postgres
+    - n8n-redis
   volumes:
     - ./n8n_storage:/home/node/
   depends_on:
-    redis:
+    n8n-redis:
       condition: service_healthy
-    postgres:
+    n8n-postgres:
       condition: service_healthy
 
 services:
@@ -49,7 +49,7 @@ services:
   #     CUSTOM_NGINX_SERVER_CONFIG_BLOCK: |
   #         proxy_buffering off;
 
-  postgres:
+  n8n-postgres:
     image: postgres:11
     restart: always
     environment:
@@ -67,7 +67,7 @@ services:
       timeout: 5s
       retries: 10
 
-  redis:
+  n8n-redis:
     image: redis:6-alpine
     restart: always
     volumes:
@@ -78,9 +78,8 @@ services:
       timeout: 5s
       retries: 10
 
-  nginx: # 可选，如果您需要一个反向代理
+  n8n-nginx: # 可选，如果您需要一个反向代理
     image: nginx:latest
-    container_name: nginx
     ports:
       - "${APP_PORT}:80" # 将 Nginx 的 80 端口映射到主机的 APP_PORT
     volumes:
